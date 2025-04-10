@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 📈 App IngeFinanciera
 
 Esta aplicación permite analizar acciones bursátiles de forma sencilla e interactiva, utilizando datos históricos del mercado para calcular rendimientos y riesgos. Desarrollada con **Python** y **Streamlit**, es ideal para usuarios que desean explorar el comportamiento de una acción a lo largo del tiempo.
@@ -77,3 +78,18 @@ matplotlib
 Jeremías Canedo  
 📧 jeremias@email.com  
 📅 Abril 2025
+=======
+# App IngeFinanciera
+
+Esta es una aplicación para ayudar a ingenieros a organizar sus finanzas personales.
+
+## Tecnologías utilizadas
+
+- Pytghon
+- Github
+- Yahoo Finance entre otras
+
+## Autor
+
+Jeremías Canedo - jeremias@email.com
+>>>>>>> db2275a378728ef3818f3f2159198da8cbaa7bff
