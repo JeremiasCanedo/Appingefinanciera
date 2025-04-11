@@ -85,21 +85,30 @@ if ticker:
 
             # Visualización PRO: comparación con el S&P 500
             st.subheader("📊 Comparación con el S&P 500")
-            benchmark = yf.Ticker("^GSPC").history(period="5y")
-            benchmark["Daily Return"] = benchmark["Close"].pct_change()
+            try:
+                benchmark = yf.Ticker("^GSPC").history(period="5y")
 
-            df["Benchmark"] = benchmark["Close"]
-            df.dropna(inplace=True)
+                if not benchmark.empty:
+                    benchmark["Daily Return"] = benchmark["Close"].pct_change()
 
-            fig3, ax3 = plt.subplots()
-            ax3.plot(df.index, cumulative_returns, label=f"{ticker}")
-            benchmark_returns = (1 + df["Benchmark"].pct_change()).cumprod() * 100
-            ax3.plot(df.index, benchmark_returns, label="S&P 500")
-            ax3.set_title("Comparación de inversión: Empresa vs S&P 500")
-            ax3.set_ylabel("Valor acumulado ($)")
-            ax3.set_xlabel("Fecha")
-            ax3.legend()
-            st.pyplot(fig3)
+                    df = df.loc[df.index.intersection(benchmark.index)]
+                    benchmark = benchmark.loc[benchmark.index.intersection(df.index)]
+
+                    cumulative_benchmark = (1 + benchmark["Daily Return"]).loc[df.index].cumprod() * 100
+
+                    fig3, ax3 = plt.subplots()
+                    ax3.plot(df.index, cumulative_returns.loc[df.index], label=f"{ticker}")
+                    ax3.plot(df.index, cumulative_benchmark, label="S&P 500")
+                    ax3.set_title("Comparación de inversión: Empresa vs S&P 500")
+                    ax3.set_ylabel("Valor acumulado ($)")
+                    ax3.set_xlabel("Fecha")
+                    ax3.legend()
+                    st.pyplot(fig3)
+                else:
+                    st.warning("No se pudieron obtener datos del índice S&P 500 en este momento.")
+
+            except Exception as be:
+                st.warning("La comparación con el S&P 500 no está disponible por el momento.")
 
     except Exception as e:
         st.error(f"Ocurrió un error: {e}")
