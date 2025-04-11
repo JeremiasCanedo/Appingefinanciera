@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="App IngeFinanciera", layout="centered")
 st.title("📈 App IngeFinanciera")
 
-# Entrada de ticker
-ticker = st.text_input("Ingresa el ticker bursátil (por ejemplo, AAPL):").upper()
+# Entrada de ticker con valor por defecto
+ticker = st.text_input("Ingresa el ticker bursátil (por ejemplo, AAPL):", value="AAPL").upper()
 
 if ticker:
     try:
@@ -25,7 +25,8 @@ if ticker:
         st.write(f"**Descripción:** {info.get('longBusinessSummary', 'No disponible')}")
 
         # Descargar precios históricos (últimos 5 años)
-        df = stock.history(period="5y")
+        with st.spinner("Descargando datos históricos..."):
+            df = stock.history(period="5y")
 
         if df.empty:
             st.error("No se encontraron datos históricos para este ticker.")
@@ -86,7 +87,8 @@ if ticker:
             # Visualización PRO: comparación con el S&P 500
             st.subheader("📊 Comparación con el S&P 500")
             try:
-                benchmark = yf.Ticker("^GSPC").history(period="5y")
+                with st.spinner("Descargando datos del S&P 500..."):
+                    benchmark = yf.Ticker("^GSPC").history(period="5y")
 
                 if not benchmark.empty:
                     benchmark["Daily Return"] = benchmark["Close"].pct_change()
