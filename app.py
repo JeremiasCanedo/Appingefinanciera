@@ -72,5 +72,34 @@ if ticker:
             st.write(f"**Volatilidad anualizada:** {vol_anual:.2%}")
             st.markdown("_Calculada como desviación estándar diaria x √252_")
 
+            # Visualización PRO: evolución de $100 invertidos
+            st.subheader("💵 Evolución de una inversión de $100")
+            cumulative_returns = (1 + df["Daily Return"]).cumprod() * 100
+            fig2, ax2 = plt.subplots()
+            ax2.plot(df.index, cumulative_returns, label="Valor acumulado ($)")
+            ax2.set_title(f"$100 invertidos en {ticker}")
+            ax2.set_ylabel("Valor ($)")
+            ax2.set_xlabel("Fecha")
+            ax2.legend()
+            st.pyplot(fig2)
+
+            # Visualización PRO: comparación con el S&P 500
+            st.subheader("📊 Comparación con el S&P 500")
+            benchmark = yf.Ticker("^GSPC").history(period="5y")
+            benchmark["Daily Return"] = benchmark["Close"].pct_change()
+
+            df["Benchmark"] = benchmark["Close"]
+            df.dropna(inplace=True)
+
+            fig3, ax3 = plt.subplots()
+            ax3.plot(df.index, cumulative_returns, label=f"{ticker}")
+            benchmark_returns = (1 + df["Benchmark"].pct_change()).cumprod() * 100
+            ax3.plot(df.index, benchmark_returns, label="S&P 500")
+            ax3.set_title("Comparación de inversión: Empresa vs S&P 500")
+            ax3.set_ylabel("Valor acumulado ($)")
+            ax3.set_xlabel("Fecha")
+            ax3.legend()
+            st.pyplot(fig3)
+
     except Exception as e:
         st.error(f"Ocurrió un error: {e}")
