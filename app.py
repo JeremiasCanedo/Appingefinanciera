@@ -74,9 +74,7 @@ if ticker:
                     ax2.legend()
                     st.pyplot(fig2)
 
-                    # Botón para descargar CSV de precios históricos
                     st.download_button("⬇️ Descargar datos históricos en CSV", df.to_csv().encode('utf-8'), file_name=f"{ticker}_datos_historicos.csv", mime='text/csv')
-
                 else:
                     st.warning("No se pudieron obtener datos del S&P 500.")
             except Exception as e:
@@ -96,8 +94,22 @@ symbols = [s.strip() for s in symbols if s.strip() != ""]
 
 if 2 <= len(symbols) <= 4:
     try:
-        with st.spinner("📥 Descargando precios históricos..."):
-            prices = yf.download(symbols, period="5y", interval="1d")["Adj Close"].dropna()
+        with st.spinner("📅 Descargando precios históricos..."):
+            raw_data = yf.download(symbols, period="5y", interval="1d", group_by='ticker', auto_adjust=False)
+
+        if isinstance(raw_data.columns, pd.MultiIndex):
+            try:
+                prices = pd.DataFrame({ticker: raw_data[ticker]['Adj Close'] for ticker in symbols})
+                prices = prices.dropna()
+            except Exception as e:
+                st.error(f"No se pudo procesar los datos: {e}")
+                st.stop()
+        else:
+            if "Adj Close" in raw_data.columns:
+                prices = raw_data["Adj Close"].to_frame()
+            else:
+                st.error("No se encontró la columna 'Adj Close'.")
+                st.stop()
 
         st.success("Datos descargados correctamente")
 
@@ -121,12 +133,12 @@ if 2 <= len(symbols) <= 4:
 
         num_assets = len(symbols)
         bounds = tuple((0, 1) for _ in range(num_assets))
-        constraints = ({"type": "eq", "fun": check_sum})
+        constraints = ("type", "eq", "fun", check_sum)
         initial_weights = [1. / num_assets] * num_assets
 
         opt = minimize(negative_sharpe_ratio, initial_weights,
                        args=(mean_returns, cov_matrix),
-                       method="SLSQP", bounds=bounds, constraints=constraints)
+                       method="SLSQP", bounds=bounds, constraints={'type': 'eq', 'fun': check_sum})
 
         opt_weights = opt.x
         opt_std, opt_return = portfolio_performance(opt_weights, mean_returns, cov_matrix)
@@ -135,7 +147,6 @@ if 2 <= len(symbols) <= 4:
         st.write("**Pesos del portafolio óptimo:**")
         st.dataframe(pd.DataFrame({"Ticker": symbols, "Peso": opt_weights}))
 
-        # Simulación para frontera eficiente
         num_portfolios = 5000
         rets, stds, sharpes = [], [], []
 
@@ -157,7 +168,6 @@ if 2 <= len(symbols) <= 4:
         plt.colorbar(scatter, label='Sharpe Ratio')
         st.pyplot(fig3)
 
-        # Botón para descargar precios históricos del portafolio
         st.download_button("⬇️ Descargar precios del portafolio en CSV", prices.to_csv().encode('utf-8'), file_name="portafolio_precios.csv", mime='text/csv')
 
     except Exception as e:
